@@ -57,13 +57,16 @@ def get_model():
     model.add(Dense(1,activation='sigmoid'))
     return model
 
-def main():
+def get_data():
     # Weight, height, shoe size and gender (1 = male, 0 = female)
     f = pd.read_csv("gender.csv")
     csv = f.values
-    data = csv[:,:3]
-    data = scale(data)
+    features = csv[:,:3]
+    features = scale(features)
     labels = csv[:,3:]
+    return (features,labels)
+
+def main():
 
     model = get_model()
     model.summary()
@@ -72,13 +75,15 @@ def main():
     gw = GetWeights()
     se = EarlyStoppingByLoss()
 
-    model.fit(data, labels, batch_size=1,epochs=10000,callbacks=[gw,se],verbose=1)
+    (features,labels) = get_data()
+
+    model.fit(features, labels, batch_size=1,epochs=10000,callbacks=[gw,se],verbose=1)
     for key in gw.weight_dict:
         print((str(key) + ' shape: {}').format(np.shape(gw.weight_dict[key])))
     for key in gw.weight_dict:
         print((str(key) + ' weights: {}').format(gw.weight_dict[key][-1]))
 
-    model.evaluate(data,labels)
+    model.evaluate(features,labels)
 
 if __name__ == '__main__':
         main()
