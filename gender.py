@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import sys
 
+FEATURE_COLUMNS = 3
 LEARNING_RATE = 0.1
 EPOCHS = 10000
 STOP_AT_LOSS = 0.008
@@ -57,9 +58,9 @@ def get_data():
     # Weight, height, shoe size and gender (1 = male, 0 = female)
     f = pd.read_csv("gender.csv")
     csv = f.values
-    features = csv[:,:3]
+    features = csv[:,:FEATURE_COLUMNS]
     features = scale(features)
-    labels = csv[:,3:]
+    labels = csv[:,FEATURE_COLUMNS:]
     return (features,labels)
 
 def main():
@@ -82,4 +83,4 @@ def main():
     model.evaluate(features,labels)
 
 if __name__ == '__main__':
-        main()
+    main()
