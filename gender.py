@@ -1,4 +1,3 @@
-#from __future__ import absolute_import, division, print_function, unicode_literals
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense,Activation
 from tensorflow.keras.optimizers import SGD
@@ -37,22 +36,15 @@ class GetWeights(Callback):
         self.weight_dict = {}
 
     def on_epoch_end(self, epoch, logs=None):
-        # this function runs at the end of each epoch
-
-        # loop over each layer and get weights and biases
         for layer_i in range(len(self.model.layers)):
             w = self.model.layers[layer_i].get_weights()[0]
             b = self.model.layers[layer_i].get_weights()[1]
 
-            # save all weights and biases inside a dictionary
             if epoch == 0:
-                # create array to hold weights and biases
                 self.weight_dict['w_'+str(layer_i+1)] = [w]
                 self.weight_dict['b_'+str(layer_i+1)] = [b]
             else:
-                # append new weights to previously-created weights array
                 self.weight_dict['w_'+str(layer_i+1)].append(w)
-                # append new weights to previously-created weights array
                 self.weight_dict['b_'+str(layer_i+1)].append(b)
 
 def get_model(dim,units):
