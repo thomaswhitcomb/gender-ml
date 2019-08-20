@@ -7,20 +7,25 @@ import numpy as np
 import pandas as pd
 import sys
 
+LEARNING_RATE = 0.1
+EPOCHS = 10000
+STOP_AT_LOSS = 0.008
+UNITS = 8
+
 def scale(t):
     tMin = t.min(axis=0)
     tMax = t.max(axis=0)
     return (t-tMin)/(tMax-tMin)
 
 class EarlyStoppingByLoss(Callback):
-    def __init__(self, monitor='loss', value=0.008, verbose=0):
+    def __init__(self, monitor='loss', value=STOP_AT_LOSS, verbose=0):
         super(Callback, self).__init__()
         self.monitor = monitor
         self.value = value
         self.verbose = verbose
     def on_epoch_end(self, epoch, logs={}):
         global lastEpoch
-        current = logs.get("loss")         
+        current = logs.get("loss")
         if current != None and current < self.value:
             self.model.stop_training = True
             lastEpoch = epoch + 1
@@ -38,7 +43,6 @@ class GetWeights(Callback):
         for layer_i in range(len(self.model.layers)):
             w = self.model.layers[layer_i].get_weights()[0]
             b = self.model.layers[layer_i].get_weights()[1]
-            #print('Layer %s has weights of shape %s and biases of shape %s' %(layer_i, np.shape(w), np.shape(b)))
 
             # save all weights and biases inside a dictionary
             if epoch == 0:
@@ -51,9 +55,9 @@ class GetWeights(Callback):
                 # append new weights to previously-created weights array
                 self.weight_dict['b_'+str(layer_i+1)].append(b)
 
-def get_model():
+def get_model(dim,units):
     model = Sequential()
-    model.add(Dense(8,input_dim=3,activation='tanh'))
+    model.add(Dense(units,input_dim=dim,activation='tanh'))
     model.add(Dense(1,activation='sigmoid'))
     return model
 
@@ -68,16 +72,16 @@ def get_data():
 
 def main():
 
-    model = get_model()
+    (features,labels) = get_data()
+
+    model = get_model(len(features[0]), UNITS)
     model.summary()
-    model.compile(loss='binary_crossentropy',metrics=['acc'],optimizer=SGD(lr = 0.1))
+    model.compile(loss='binary_crossentropy',metrics=['acc'],optimizer=SGD(lr = LEARNING_RATE))
 
     gw = GetWeights()
     se = EarlyStoppingByLoss()
 
-    (features,labels) = get_data()
-
-    model.fit(features, labels, batch_size=1,epochs=10000,callbacks=[gw,se],verbose=1)
+    model.fit(features, labels, batch_size=1,epochs=EPOCHS,callbacks=[gw,se],verbose=1)
     for key in gw.weight_dict:
         print((str(key) + ' shape: {}').format(np.shape(gw.weight_dict[key])))
     for key in gw.weight_dict:
