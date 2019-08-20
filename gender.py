@@ -51,29 +51,34 @@ class GetWeights(Callback):
                 # append new weights to previously-created weights array
                 self.weight_dict['b_'+str(layer_i+1)].append(b)
 
-# Weight, height, shoe size and gender (1 = male, 0 = female)
-f = pd.read_csv("gender.csv")
-csv = f.values
-data = csv[:,:3]
-data = scale(data)
-labels = csv[:,3:]
+def get_model():
+    model = Sequential()
+    model.add(Dense(8,input_dim=3,activation='tanh'))
+    model.add(Dense(1,activation='sigmoid'))
+    return model
 
-model = Sequential()
-model.add(Dense(8,input_dim=3,activation='tanh'))
-model.add(Dense(1,activation='sigmoid'))
+def main():
+    # Weight, height, shoe size and gender (1 = male, 0 = female)
+    f = pd.read_csv("gender.csv")
+    csv = f.values
+    data = csv[:,:3]
+    data = scale(data)
+    labels = csv[:,3:]
 
-model.compile(loss='binary_crossentropy',metrics=['acc'],optimizer=SGD(lr = 0.1))
+    model = get_model()
+    model.summary()
+    model.compile(loss='binary_crossentropy',metrics=['acc'],optimizer=SGD(lr = 0.1))
 
-model.summary()
+    gw = GetWeights()
+    se = EarlyStoppingByLoss()
 
+    model.fit(data, labels, batch_size=1,epochs=10000,callbacks=[gw,se],verbose=1)
+    for key in gw.weight_dict:
+        print((str(key) + ' shape: {}').format(np.shape(gw.weight_dict[key])))
+    for key in gw.weight_dict:
+        print((str(key) + ' weights: {}').format(gw.weight_dict[key][-1]))
 
-# Train the model, iterating on the data in batches of 32 samples
-gw = GetWeights()
-se = EarlyStoppingByLoss()
+    model.evaluate(data,labels)
 
-history = model.fit(data, labels, batch_size=1,epochs=10000,callbacks=[gw,se],verbose=1)
-for key in gw.weight_dict:
-    print((str(key) + ' shape: {}').format(np.shape(gw.weight_dict[key])))
-for key in gw.weight_dict:
-    print((str(key) + ' weights: {}').format(gw.weight_dict[key][-1]))
-#model.evaluate(data,labels)
+if __name__ == '__main__':
+        main()
